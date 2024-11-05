@@ -4,8 +4,9 @@ echo "sda or nvme?"
 echo "create 3 partitions: first one is efi, second is swap, third is root"
 echo "dont forget to select correct type. for first one, select fat32. for second, select swap. for third, select linit filesystem"
 read output
-bloat="btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
-needed="libusb usbutils dbus glibs connman acpi acpid cpio libaio device-mapper kpartx dracut linux-firmware-network linux6.11 linux6.11-headers"
+bloat="xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
+needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx dracut linux-firmware-network linux6.11 linux6.11-headers"
+installcommand="chroot /mnt /bin/sh -c"
 
 fornvme() {
     ## get disk name
@@ -34,6 +35,12 @@ fornvme() {
 
     ## install system
     installsystem
+
+    ##setup repo
+    setuprepo
+
+    ## prepare system
+    prepare
 }
 
 forsda() {
@@ -57,43 +64,61 @@ forsda() {
     swapon ${device}2
 
     ## download tarball
-    downloadtarball
+    #downloadtarball
 
     ## enter chroot
     mountfilesandchroot
+
+    ##setup repo
+    setuprepo
 
     ## install system
     installsystem
 
     ## prepare system
-    prepare
+    #prepare
 }
 
 downloadtarball() {
-    #wget -O /tmp/void.tar.xz https://repo-fastly.voidlinux.org/live/current/void-x86_64-ROOTFS-20240314.tar.xz
-    #tar -xvf /tmp/void.tar.xz -C /mnt
-    echo "okay"
+    echo "downloading tarball"
+    wget -O /tmp/void.tar.xz https://repo-fastly.voidlinux.org/live/current/void-x86_64-ROOTFS-20240314.tar.xz
+    tar -xvf /tmp/void.tar.xz -C /mnt
 }
+
 mountfilesandchroot() {
+    echo "mounting"
     mount -t proc none /mnt/proc
     mount -t sysfs none /mnt/sys
     mount --rbind /mnt/dev /mnt/dev
     mount --rbind /mnt/run /mnt/run
-    chroot /mnt/ /bin/bash
 }
 
+setuprepo() {
+    echo "fastest repos installing"
+    rm /mnt/usr/share/xbps.d/00-repository-main.conf
+    touch /mnt/usr/share/xbps.d/00-repository.conf
+    # Append new repository URLs using echo
+    echo 'repository=https://repo-fastly.voidlinux.org/current' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo 'repository=https://repo-fastly.voidlinux.org/current/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo 'repository=https://repo-fastly.voidlinux.org/current/multilib' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+}
+
+
 installsystem() {
-    xbps-install -Su xbps
-    xbps-install -u
-    xbps-install $needed
-    xbps-remove $bloat
+    sed -i '$a'
+    echo "installing system"
+    #$installcommand "xbps-install -Su xbps"
+    #$installcommand "xbps-install -u"
+    $installcommand "xbps-install $needed"
+    $installcommand "xbps-remove $bloat"
 }
 
 prepare() {
-    nvi /etc/hostname
-    nvi /etc/rc.conf
-    nvi /etc/default/libc-locales
-    xbps-reconfigure -f glibc-locales
+    echo "preparing system, better get ready"
+    $installcommand "nvi /etc/hostname"
+    #$installcommand "nvi /etc/rc.conf"
+    #$installcommand "nvi /etc/default/libc-locales"
+    #$installcommand "xbps-reconfigure -f glibc-locales"
 }
 
 if [ "$output" == "sda" ]; then
