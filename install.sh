@@ -69,8 +69,8 @@ forsda() {
     umount -R /mnt/
     umount $device*
     swapoff $device*
-    rm -rf /mnt/*
-    cfdisk $device
+    #rm -rf /mnt/*
+    #cfdisk $device
     
     ## format disk      #working
     echo "formatting disk"
@@ -171,8 +171,8 @@ setupusers() {
 
 
 installgrub() {
-    $installcommand "xbps-install grub-x86_64-efi"
-    $installcommand "grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Im into VOID"
+    $installcommand "xbps-install refind"
+    $installcommand "refind-install"
 }
 
 lasttouch() {
