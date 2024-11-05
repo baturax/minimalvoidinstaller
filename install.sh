@@ -7,9 +7,12 @@ read output
 bloat="xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
 needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx dracut linux-firmware-network linux6.11 linux6.11-headers"
 installcommand="chroot /mnt /bin/sh -c"
+FSTAB_FILE="/etc/fstab"
+
 
 fornvme() {
     ## get disk name
+    echo "dont mind this"
     device="/dev/nvme0n1"
     umount -R /mnt/
     umount $device*
@@ -17,11 +20,13 @@ fornvme() {
     cfdisk $device
 
     ## format disk
+    echo "formatting disk"
     mkfs.vfat -F32 ${device}p1
     mkswap ${device}p2
     mkfs.ext4 ${device}p3
 
     ## mount disk
+    echo "mounting disk"
     mount ${device}p3 /mnt
     mkdir -p /mnt/boot/efi
     mount ${device}p1 /mnt/boot/efi
@@ -41,30 +46,44 @@ fornvme() {
 
     ## prepare system
     prepare
+
+    #setup users
+    setupusers
+
+    ## fstab
+    bastardfstabnvme
+
+    ## last touch
+    lasttouch
+
+    chroot /mnt /bin/bash
 }
 
 forsda() {
     ## get disk name
+    echo "dont mind this"
     device="/dev/sda"
     umount -R /mnt/
     umount $device*
     swapoff $device*
-    #rm -rf /mnt/*
+    rm -rf /mnt/*
     cfdisk $device
     
     ## format disk
-    #mkfs.vfat -F32 ${device}1
-    #mkswap ${device}2
-    #mkfs.ext4 ${device}3
+    echo "formatting disk"
+    mkfs.vfat -F32 ${device}1
+    mkswap ${device}2
+    mkfs.ext4 ${device}3
 
     ## mount disk
+    echo "mounting disk"
     mount ${device}3 /mnt
     mkdir -p /mnt/boot/efi
     mount ${device}1 /mnt/boot/efi
     swapon ${device}2
 
     ## download tarball
-    #downloadtarball
+    downloadtarball
 
     ## enter chroot
     mountfilesandchroot
@@ -76,7 +95,64 @@ forsda() {
     installsystem
 
     ## prepare system
-    #prepare
+    prepare
+
+    #setup users
+    setupusers
+
+    ## fstab
+    bastardfstabsda
+
+    ## last touch
+    lasttouch
+
+   chroot /mnt /bin/bash
+}
+
+lasttouch() {
+    $installcommand "xbps-reconfigure -fa"
+}
+
+installgrub() {
+    $installcommand "xbps-install grub-x86_64-efi"
+    $installcommand "grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Im into VOID"
+}
+
+bastardfstabsda() {
+    $installcommand "rm /etc/fstab"
+    root_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p3| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+efi_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p1| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p2| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+
+    $installcommand "touch $FSTAB_FILE"
+    $installcommand "echo \"$root_UUID / ext4 defaults 0 1\" | tee -a $FSTAB_FILE"
+    $installcommand "echo \"$efi_UUID /boot/efi vfat defaults 0 2\" | tee -a $FSTAB_FILE"
+    $installcommand "echo \"$swap_UUID swap swap defaults 0 0\" | tee -a $FSTAB_FILE"
+    $installcommand "echo \"tmpfs /tmp tmpfs defaults 0 0\" | tee -a $FSTAB_FILE"
+}
+
+
+bastardfstabsda() {
+    $installcommand "rm /etc/fstab"
+    root_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda3 | awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+efi_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda1 | awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda2 | awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+
+    $installcommand "touch $FSTAB_FILE"
+    $installcommand "echo \"$root_UUID / ext4 defaults 0 1\" | tee -a $FSTAB_FILE"
+    $installcommand "echo \"$efi_UUID /boot/efi vfat defaults 0 2\" | tee -a $FSTAB_FILE"
+    $installcommand "echo \"$swap_UUID swap swap defaults 0 0\" | tee -a $FSTAB_FILE"
+    $installcommand "echo \"tmpfs /tmp tmpfs defaults 0 0\" | tee -a $FSTAB_FILE"
+}
+
+setupusers() {
+    echo "enter root password 2 times"
+    $installcommand "passwd root"
+    echo "enter username"
+    read username
+    $installcommand "useradd -m -G wheel,video,audio $username"
+    echo "enter password for $username"
+    $installcommand "passwd $username"
 }
 
 downloadtarball() {
@@ -89,8 +165,8 @@ mountfilesandchroot() {
     echo "mounting"
     mount -t proc none /mnt/proc
     mount -t sysfs none /mnt/sys
-    mount --rbind /mnt/dev /mnt/dev
-    mount --rbind /mnt/run /mnt/run
+    mount --rbind /dev /mnt/dev
+    mount --rbind /run /mnt/run
 }
 
 setuprepo() {
@@ -107,18 +183,19 @@ setuprepo() {
 installsystem() {
     sed -i '$a'
     echo "installing system"
-    #$installcommand "xbps-install -Su xbps"
-    #$installcommand "xbps-install -u"
+    $installcommand "xbps-install -Su xbps"
+    $installcommand "xbps-install -u"
     $installcommand "xbps-install $needed"
     $installcommand "xbps-remove $bloat"
 }
 
 prepare() {
     echo "preparing system, better get ready"
-    $installcommand "nvi /etc/hostname"
-    #$installcommand "nvi /etc/rc.conf"
-    #$installcommand "nvi /etc/default/libc-locales"
-    #$installcommand "xbps-reconfigure -f glibc-locales"
+    $installcommand "mount -t efivarfs none /sys/firmware/efi/efivars"
+    vi /mnt/etc/hostname
+    vi /mnt/etc/rc.conf
+    vi /mnt/etc/default/libc-locales
+    $installcommand "xbps-reconfigure -f glibc-locales"
 }
 
 if [ "$output" == "sda" ]; then
