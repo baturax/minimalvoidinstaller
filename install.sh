@@ -14,7 +14,7 @@ FSTAB_FILE="/etc/fstab"
 
 neededbloat="git make gcc wget curl firefox-esr kitty nvidia rofi pipewire pavucontrol elogind alsa-libs alsa-firmware alsa-tools playerctl alsa-pipewire picom flameshot neovim qt5ct qt6ct mpv"
 
-askbloats="Wanna install needed bloats? (press y or n for no)"
+askbloats="Wanna install needed bloats? (press y)"
 
 lastwords="Now that installation is finished, you are free to either enter chroot or reboot and use your pc as you wish (press c for chroot, press r for reboot)"
 
@@ -43,29 +43,38 @@ fornvme() {
 
     ## download tarball
     downloadtarball
+
     ## enter chroot
     mountfilesandchroot
+
     ## install system
     installsystem
+
     ##setup repo
     setuprepo
+
     ## prepare system
     prepare
+
     #setup users
     setupusers
+
     ## fstab
     bastardfstabnvme
+
     ##install grub
     installgrub
+
     ## last touch
     lasttouch
 
     ##ask bloats
     echo $askbloats
-    read askedbloated
-        
+    read answeredbloats
+   
+    ## ask last words
     echo $lastwords
-    read answeredlast
+    read answeredlastwords
 
 }
 
@@ -97,29 +106,38 @@ forsda() {
 
     ## download tarball     #working
     downloadtarball
+
     ## mount to chroot     #working
     mountfilesandchroot
+
     ##setup repo            #working
     setuprepo
+
     ## install system       #working
     installsystem
+
     ## prepare system       #working
     prepare
+
     #setup users        #working
     setupusers
+
     ## fstab           #working
     bastardfstabsda
-    ##install grub      #working
+
+    ##install grub
     installgrub
-    ## last touch       #working
+
+    ## last touch
     lasttouch
 
-    ##ask bloats
+    ##as bloats
     echo $askbloats
-    read askedbloated
+    read answeredbloats
 
+    ## ask last words
     echo $lastwords
-    read answeredlast
+    read answeredlastwords
 
 }
 
@@ -193,38 +211,10 @@ installgrub() {
 }
 
 lasttouch() {
-    echo "last touchs""
     $installcommand "xbps-reconfigure -fa"
-    echo "finished"
 }
 
-if [ "$answeredlast" == "c" ]; then
-    chroot /mnt /bin/sh
-else
-    umount -R /mnt
-    shutdown -r now
-fi
 
-if [ "$askedbloated" == "y" ]; then
-    $installcommand "xbps-install $neededbloat"
-elif [ "$askedbloated" == "n" ]; then
-    echo "ok, no bloats"
-else
-    echo "ok, no bloats"
-fi
-
-if [ "$outbloats" == "y" ]; then
-    $installcommand "xbps-install $neededbloat"
-fi
-
-
-if [ "$output" == "sda" ]; then
-   forsda
-elif [ "$output" == "nvme" ]; then
-    fornvme
-else
-    echo "nuh uh"
-fi
 
 bastardfstabsda() {
     $installcommand "rm /etc/fstab"
@@ -252,3 +242,24 @@ swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda2 | awk -F 'UUID=\"' '{print \
     $installcommand "echo \"$swap_UUID swap swap defaults 0 0\" | tee -a $FSTAB_FILE"
     $installcommand "echo \"tmpfs /tmp tmpfs defaults 0 0\" | tee -a $FSTAB_FILE"
 }
+
+if [ "$answeredlastwords" == "c" ]; then
+    chroot /mnt /bin/sh
+elif [ "$answeredlastwords" == "r" ]; then
+    umount -R /mnt
+    reboot
+fi
+
+if [ "$answeredbloats" == "y" ]; then
+    $installcommand "xbps-install $neededbloat"
+fi
+
+
+if [ "$output" == "sda" ]; then
+   forsda
+elif [ "$output" == "nvme" ]; then
+    fornvme
+else
+    echo "nuh uh"
+fi
+
