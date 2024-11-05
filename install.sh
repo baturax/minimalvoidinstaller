@@ -53,6 +53,9 @@ fornvme() {
     ## fstab
     bastardfstabnvme
 
+    ##install grub
+    installgrub
+
     ## last touch
     lasttouch
 
@@ -67,13 +70,13 @@ forsda() {
     umount $device*
     swapoff $device*
     rm -rf /mnt/*
-    cfdisk $device
+    #cfdisk $device
     
     ## format disk
     echo "formatting disk"
-    mkfs.vfat -F32 ${device}1
-    mkswap ${device}2
-    mkfs.ext4 ${device}3
+    #mkfs.vfat -F32 ${device}1
+    #mkswap ${device}2
+    #mkfs.ext4 ${device}3
 
     ## mount disk
     echo "mounting disk"
@@ -83,25 +86,28 @@ forsda() {
     swapon ${device}2
 
     ## download tarball
-    downloadtarball
+    #downloadtarball
 
     ## enter chroot
     mountfilesandchroot
 
     ##setup repo
-    setuprepo
+    #setuprepo
 
     ## install system
-    installsystem
+    #installsystem
 
     ## prepare system
-    prepare
+    #prepare
 
     #setup users
-    setupusers
+    #setupusers
 
     ## fstab
-    bastardfstabsda
+    #bastardfstabsda
+
+    ##install grub
+    installgrub
 
     ## last touch
     lasttouch
