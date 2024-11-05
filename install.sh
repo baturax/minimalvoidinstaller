@@ -4,10 +4,19 @@ echo "sda or nvme?"
 echo "create 3 partitions: first one is efi, second is swap, third is root"
 echo "dont forget to select correct type. for first one, select fat32. for second, select swap. for third, select linit filesystem"
 read output
+
 bloat="sudo xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
-needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx dracut linux-firmware-network linux6.11 linux6.11-headers "
+
+needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware"
+
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
+
+neededbloat="git make gcc wget curl firefox-esr kitty nvidia rofi pipewire pavucontrol elogind alsa-libs alsa-firmware alsa-tools playerctl alsa-pipewire picom flameshot neovim qt5ct qt6ct mpv"
+
+askbloats="Wanna install needed bloats? (press y or n for no)"
+
+lastwords="Now that installation is finished, you are free to either enter chroot or reboot and use your pc as you wish (press c for chroot, press r for reboot)"
 
 
 fornvme() {
@@ -34,49 +43,49 @@ fornvme() {
 
     ## download tarball
     downloadtarball
-
     ## enter chroot
     mountfilesandchroot
-
     ## install system
     installsystem
-
     ##setup repo
     setuprepo
-
     ## prepare system
     prepare
-
     #setup users
     setupusers
-
     ## fstab
     bastardfstabnvme
-
     ##install grub
     installgrub
-
     ## last touch
     lasttouch
 
-    chroot /mnt /bin/bash
+    ##ask bloats
+    echo $askbloats
+    read askedbloated
+        
+    echo $lastwords
+    read answeredlast
+
 }
 
 forsda() {
     ## get disk name    #working
-    echo "dont mind this"
+    echo "dont mind these outputs"
     device="/dev/sda"
     umount -R /mnt/
     umount $device*
     swapoff $device*
-    #rm -rf /mnt/*
-    #cfdisk $device
+    rm -rf /mnt/*
+    cfdisk $device
+    echo "finished"
     
     ## format disk      #working
     echo "formatting disk"
     mkfs.vfat -F32 ${device}1
     mkswap ${device}2
     mkfs.ext4 ${device}3
+    echo "finished"
 
     ## mount disk       #working
     echo "mounting disk"
@@ -84,42 +93,43 @@ forsda() {
     mkdir -p /mnt/boot/efi
     mount ${device}1 /mnt/boot/efi
     swapon ${device}2
+    echo "finished"
 
     ## download tarball     #working
     downloadtarball
-
     ## mount to chroot     #working
     mountfilesandchroot
-
     ##setup repo            #working
     setuprepo
-
     ## install system       #working
     installsystem
-
     ## prepare system       #working
     prepare
-
     #setup users        #working
     setupusers
-
     ## fstab           #working
     bastardfstabsda
-
-    ##install grub
+    ##install grub      #working
     installgrub
-
-    ## last touch
+    ## last touch       #working
     lasttouch
 
-   chroot /mnt /bin/bash
+    ##ask bloats
+    echo $askbloats
+    read askedbloated
+
+    echo $lastwords
+    read answeredlast
+
 }
+
 
 
 downloadtarball() {
     echo "downloading tarball"
     wget -O /tmp/void.tar.xz https://repo-fastly.voidlinux.org/live/current/void-x86_64-ROOTFS-20240314.tar.xz
     tar -xvf /tmp/void.tar.xz -C /mnt
+    echo "finished"
 }
 
 mountfilesandchroot() {
@@ -128,6 +138,8 @@ mountfilesandchroot() {
     mount -t sysfs none /mnt/sys
     mount --rbind /dev /mnt/dev
     mount --rbind /run /mnt/run
+    cp /etc/resolv.conf /mnt/etc/resolv.conf
+    echo "finished"
 }
 
 setuprepo() {
@@ -138,24 +150,26 @@ setuprepo() {
     echo 'repository=https://repo-fastly.voidlinux.org/current' >> /mnt/usr/share/xbps.d/00-repository-main.conf
     echo 'repository=https://repo-fastly.voidlinux.org/current/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
     echo 'repository=https://repo-fastly.voidlinux.org/current/multilib' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo "finished"
 }
 
 installsystem() {
-    sed -i '$a'
     echo "installing system"
     $installcommand "xbps-install -Su xbps"
     $installcommand "xbps-install -u"
     $installcommand "xbps-install $needed"
     $installcommand "xbps-remove $bloat"
+    echo "finished"
 }
 
 prepare() {
-    echo "preparing system, better get ready"
+    echo "preparing system, better get ready!!"
     $installcommand "mount -t efivarfs none /sys/firmware/efi/efivars"
     vi /mnt/etc/hostname
     vi /mnt/etc/rc.conf
     vi /mnt/etc/default/libc-locales
     $installcommand "xbps-reconfigure -f glibc-locales"
+    echo "finished"
 }
 
 
@@ -167,19 +181,50 @@ setupusers() {
     $installcommand "useradd -m -G wheel,video,audio $username"
     echo "enter password for $username"
     $installcommand "passwd $username"
+    echo "finished"
 }
 
 
 installgrub() {
+    echo "installing refind cause i love it"
     $installcommand "xbps-install refind"
     $installcommand "refind-install"
+    echo "finished"
 }
 
 lasttouch() {
+    echo "last touchs""
     $installcommand "xbps-reconfigure -fa"
+    echo "finished"
 }
 
+if [ "$answeredlast" == "c" ]; then
+    chroot /mnt /bin/sh
+else
+    umount -R /mnt
+    shutdown -r now
+fi
 
+if [ "$askedbloated" == "y" ]; then
+    $installcommand "xbps-install $neededbloat"
+elif [ "$askedbloated" == "n" ]; then
+    echo "ok, no bloats"
+else
+    echo "ok, no bloats"
+fi
+
+if [ "$outbloats" == "y" ]; then
+    $installcommand "xbps-install $neededbloat"
+fi
+
+
+if [ "$output" == "sda" ]; then
+   forsda
+elif [ "$output" == "nvme" ]; then
+    fornvme
+else
+    echo "nuh uh"
+fi
 
 bastardfstabsda() {
     $installcommand "rm /etc/fstab"
@@ -207,16 +252,3 @@ swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda2 | awk -F 'UUID=\"' '{print \
     $installcommand "echo \"$swap_UUID swap swap defaults 0 0\" | tee -a $FSTAB_FILE"
     $installcommand "echo \"tmpfs /tmp tmpfs defaults 0 0\" | tee -a $FSTAB_FILE"
 }
-
-
-
-
-
-if [ "$output" == "sda" ]; then
-   forsda
-elif [ "$output" == "nvme" ]; then
-    fornvme
-else
-    echo "nuh uh"
-fi
-
