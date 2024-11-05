@@ -1,0 +1,2 @@
+# minimalvoidinstaller
+install minimal void
