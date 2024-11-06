@@ -2,12 +2,12 @@
 
 echo "sda or nvme?"
 echo "create 3 partitions: first one is efi, second is swap, third is root"
-echo "dont forget to select correct type. for first one, select fat32. for second, select swap. for third, select linit filesystem"
+echo "dont forget to select correct type. for first one, select fat32. for second, select swap. for third, select linux filesystem"
 read output
 
 bloat="sudo xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
 
-needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware refind git"
+needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware git"
 
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
@@ -200,8 +200,8 @@ setupusers() {
 
 installgrub() {
     echo "installing refind cause i love it"
-    $installcommand "xbps-install refind"
-    $installcommand "refind-install"
+    $installcommand "xbps-install grub-x86_64-efi"
+    $installcommand "grub-install"
     echo "finished"
 }
 
