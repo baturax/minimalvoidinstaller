@@ -5,7 +5,7 @@ check_package() {
     if ! which $package &>/dev/null; then
         echo "make sure xz vi and wget installed"
     else
-        echo "$package is already installed."
+        echo "nothing looks sus, installing started"
     fi
 }
 
