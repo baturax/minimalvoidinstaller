@@ -12,7 +12,7 @@ needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
 
-neededbloat="opendoas git make gcc curl wget firefox-esr kitty nvidia rofi pipewire pavucontrol elogind alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire picom flameshot neovim qt5ct qt6ct mpv xorg-minimal leftwm"
+neededbloat="opendoas git make gcc curl wget firefox-esr kitty nvidia rofi pipewire pavucontrol elogind alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire picom flameshot neovim qt5ct qt6ct mpv xorg-minimal leftwm chrony"
 
 askbloats="Wanna install needed bloats? (press y)"
 
@@ -256,6 +256,7 @@ answerbloats() {
         $installcommand "xbps-install -S $neededbloat"
         $installcommand "ln -s /etc/sv/connmand /etc/runit/runsvdir/default/"
         $installcommand "rm -rf /etc/runit/runsvdir/default/agetty-tty4 /etc/runit/runsvdir/default/agetty-tty5 /etc/runit/runsvdir/default/agetty-tty6"
+        $installcommand "ln -s /etc/sv/chronyd /etc/runit/runsvdir/default"
     fi
 }
 
