@@ -12,7 +12,7 @@ needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
 
-neededbloat="git make gcc wget curl firefox-esr kitty nvidia rofi pipewire pavucontrol elogind alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire picom flameshot neovim qt5ct qt6ct mpv xorg-minimal leftwm"
+neededbloat="git make gcc wget firefox-esr kitty nvidia rofi pipewire pavucontrol elogind alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire picom flameshot neovim qt5ct qt6ct mpv xorg-minimal leftwm"
 
 askbloats="Wanna install needed bloats? (press y)"
 
