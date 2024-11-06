@@ -12,7 +12,7 @@ needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
 
-neededbloat="git make gcc wget curl firefox-esr kitty nvidia rofi pipewire pavucontrol elogind alsa-libs alsa-firmware alsa-tools playerctl alsa-pipewire picom flameshot neovim qt5ct qt6ct mpv"
+neededbloat="git make gcc wget curl firefox-esr kitty nvidia rofi pipewire pavucontrol elogind alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire picom flameshot neovim qt5ct qt6ct mpv"
 
 askbloats="Wanna install needed bloats? (press y)"
 
@@ -69,12 +69,10 @@ fornvme() {
     lasttouch
 
     ##ask bloats
-    echo $askbloats
-    read answeredbloats
-   
+    answerbloats
+
     ## ask last words
-    echo $lastwords
-    read answeredlastwords
+    answerlastwords
 
 }
 
@@ -85,15 +83,15 @@ forsda() {
     umount -R /mnt/
     umount $device*
     swapoff $device*
-    rm -rf /mnt/*
-    cfdisk $device
+    #rm -rf /mnt/*
+    #cfdisk $device
     echo "finished"
     
     ## format disk      #working
     echo "formatting disk"
-    mkfs.vfat -F32 ${device}1
-    mkswap ${device}2
-    mkfs.ext4 ${device}3
+    #mkfs.vfat -F32 ${device}1
+    #mkswap ${device}2
+    #mkfs.ext4 ${device}3
     echo "finished"
 
     ## mount disk       #working
@@ -105,43 +103,56 @@ forsda() {
     echo "finished"
 
     ## download tarball     #working
-    downloadtarball
+    #downloadtarball
 
     ## mount to chroot     #working
     mountfilesandchroot
 
     ##setup repo            #working
-    setuprepo
+    #setuprepo
 
     ## install system       #working
-    installsystem
+    #installsystem
 
     ## prepare system       #working
-    prepare
+    #prepare
 
     #setup users        #working
-    setupusers
+    #setupusers
 
     ## fstab           #working
-    bastardfstabsda
+    #bastardfstabsda
 
     ##install grub
-    installgrub
+    #installgrub
 
     ## last touch
-    lasttouch
+    #lasttouch
 
-    ##as bloats
-    echo $askbloats
-    read answeredbloats
+    ##ask bloats
+    answerbloats
 
     ## ask last words
-    echo $lastwords
-    read answeredlastwords
-
+    answerlastwords
 }
 
-
+answerlastwords() {
+    echo $lastwords
+    read answeredlastwords
+    if [ "$answeredlastwords" == "c" ]; then
+        chroot /mnt /bin/sh
+    elif [ "$answeredlastwords" == "r" ]; then
+        umount -R /mnt
+        reboot
+    fi
+}
+answerbloats() {
+    echo $askbloats
+    read answeredbloats
+    if [ "$answeredbloats" == "y" ]; then
+        $installcommand "xbps-install $neededbloat"
+    fi
+}
 
 downloadtarball() {
     echo "downloading tarball"
@@ -243,16 +254,8 @@ swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda2 | awk -F 'UUID=\"' '{print \
     $installcommand "echo \"tmpfs /tmp tmpfs defaults 0 0\" | tee -a $FSTAB_FILE"
 }
 
-if [ "$answeredlastwords" == "c" ]; then
-    chroot /mnt /bin/sh
-elif [ "$answeredlastwords" == "r" ]; then
-    umount -R /mnt
-    reboot
-fi
 
-if [ "$answeredbloats" == "y" ]; then
-    $installcommand "xbps-install $neededbloat"
-fi
+
 
 
 if [ "$output" == "sda" ]; then
