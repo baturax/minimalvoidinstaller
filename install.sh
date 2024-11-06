@@ -176,11 +176,11 @@ mountfilesandchroot() {
 setuprepo() {
     echo "fastest repos installing"
     rm /mnt/usr/share/xbps.d/00-repository-main.conf
-    touch /mnt/usr/share/xbps.d/00-repository.conf
+    touch /mnt/usr/share/xbps.d/00-repository-main.conf
     # Append new repository URLs using echo
-    echo 'repository=https://repo-fastly.voidlinux.org/current' >> /mnt/usr/share/xbps.d/00-repository-main.conf
-    echo 'repository=https://repo-fastly.voidlinux.org/current/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
-    echo 'repository=https://repo-fastly.voidlinux.org/current/multilib' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo 'repository=https://repo-default.voidlinux.org/current' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo 'repository=https://repo-default.voidlinux.org/current/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo 'repository=https://repo-default.voidlinux.org/current/multilib' >> /mnt/usr/share/xbps.d/00-repository-main.conf
     echo "finished"
 }
 
@@ -229,7 +229,7 @@ lasttouch() {
 
 
 
-bastardfstabsda() {
+bastardfstabnvme() {
     $installcommand "rm /etc/fstab"
     root_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p3| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
 efi_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p1| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
