@@ -238,15 +238,6 @@ swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda2 | awk -F 'UUID=\"' '{print \
     $installcommand "echo \"tmpfs /tmp tmpfs defaults 0 0\" | tee -a $FSTAB_FILE"
 }
 
-
-if [ "$output" == "sda" ]; then
-   forsda
-elif [ "$output" == "nvme" ]; then
-    fornvme
-else
-    echo "nuh uh"
-fi
-
 answerbloats() {
     echo $askbloats
     read answeredbloats
@@ -270,5 +261,16 @@ answerlastwords() {
         reboot
     fi
 }
+
+
+
+
+if [ "$output" == "sda" ]; then
+   forsda
+elif [ "$output" == "nvme" ]; then
+    fornvme
+else
+    echo "nuh uh"
+fi
 
 
