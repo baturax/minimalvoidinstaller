@@ -1,5 +1,19 @@
 #!/usr/bin/bash
 
+check_package() {
+    package=$1
+    if ! which $package &>/dev/null; then
+        echo "make sure xz vi and wget installed"
+    else
+        echo "$package is already installed."
+    fi
+}
+
+# Paketlerin her birini kontrol et
+check_package "xz"
+check_package "wget"
+check_package "vi"
+
 echo "sda or nvme?"
 echo "create 3 partitions: first one is efi, second is swap, third is root"
 echo "dont forget to select correct type. for first one, select fat32. for second, select swap. for third, select linux filesystem"
