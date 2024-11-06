@@ -7,7 +7,7 @@ read output
 
 bloat="sudo xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
 
-needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware"
+needed="libusb usbutils dbus connman acpi acpid cpio libaio device-mapper kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware refind git"
 
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
@@ -86,7 +86,7 @@ forsda() {
     rm -rf /mnt/*
     cfdisk $device
     echo "finished"
-    
+
     ## format disk      #working
     echo "formatting disk"
     mkfs.vfat -F32 ${device}1
@@ -150,7 +150,7 @@ answerbloats() {
     echo $askbloats
     read answeredbloats
     if [ "$answeredbloats" == "y" ]; then
-        $installcommand "xbps-install $neededbloat"
+        $installcommand "xbps-install -S $neededbloat"
     fi
 }
 
@@ -265,4 +265,3 @@ elif [ "$output" == "nvme" ]; then
 else
     echo "nuh uh"
 fi
-
