@@ -136,25 +136,7 @@ forsda() {
     answerlastwords
 }
 
-answerlastwords() {
-    echo $lastwords
-    read answeredlastwords
-    if [ "$answeredlastwords" == "c" ]; then
-        chroot /mnt /bin/sh
-    elif [ "$answeredlastwords" == "r" ]; then
-        umount -R /mnt
-        reboot
-    fi
-}
-answerbloats() {
-    echo $askbloats
-    read answeredbloats
-    if [ "$answeredbloats" == "y" ]; then
-        touch /mnt/etc/doas.conf
-        echo 'permit persist :wheel' >> /mnt/etc/doas.conf
-        $installcommand "xbps-install -S $neededbloat"
-    fi
-}
+
 
 downloadtarball() {
     echo "downloading tarball"
@@ -257,9 +239,6 @@ swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda2 | awk -F 'UUID=\"' '{print \
 }
 
 
-
-
-
 if [ "$output" == "sda" ]; then
    forsda
 elif [ "$output" == "nvme" ]; then
@@ -267,3 +246,28 @@ elif [ "$output" == "nvme" ]; then
 else
     echo "nuh uh"
 fi
+
+answerbloats() {
+    echo $askbloats
+    read answeredbloats
+    if [ "$answeredbloats" == "y" ]; then
+        touch /mnt/etc/doas.conf
+        echo 'permit persist :wheel' >> /mnt/etc/doas.conf
+        $installcommand "xbps-install -S $neededbloat"
+        $installcommand "ln -s /etc/sv/connmand /etc/runit/runsvdir/default/"
+        $installcommand "rm -rf /etc/runit/runsvdir/default/agetty-tty4 /etc/runit/runsvdir/default/agetty-tty5 /etc/runit/runsvdir/default/agetty-tty6"
+    fi
+}
+
+answerlastwords() {
+    echo $lastwords
+    read answeredlastwords
+    if [ "$answeredlastwords" == "c" ]; then
+        chroot /mnt /bin/sh
+    elif [ "$answeredlastwords" == "r" ]; then
+        umount -R /mnt
+        reboot
+    fi
+}
+
+
