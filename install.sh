@@ -83,15 +83,15 @@ forsda() {
     umount -R /mnt/
     umount $device*
     swapoff $device*
-    #rm -rf /mnt/*
-    #cfdisk $device
+    rm -rf /mnt/*
+    cfdisk $device
     echo "finished"
     
     ## format disk      #working
     echo "formatting disk"
-    #mkfs.vfat -F32 ${device}1
-    #mkswap ${device}2
-    #mkfs.ext4 ${device}3
+    mkfs.vfat -F32 ${device}1
+    mkswap ${device}2
+    mkfs.ext4 ${device}3
     echo "finished"
 
     ## mount disk       #working
@@ -103,31 +103,31 @@ forsda() {
     echo "finished"
 
     ## download tarball     #working
-    #downloadtarball
+    downloadtarball
 
     ## mount to chroot     #working
     mountfilesandchroot
 
     ##setup repo            #working
-    #setuprepo
+    setuprepo
 
     ## install system       #working
-    #installsystem
+    installsystem
 
     ## prepare system       #working
-    #prepare
+    prepare
 
     #setup users        #working
-    #setupusers
+    setupusers
 
     ## fstab           #working
-    #bastardfstabsda
+    bastardfstabsda
 
     ##install grub
-    #installgrub
+    installgrub
 
     ## last touch
-    #lasttouch
+    lasttouch
 
     ##ask bloats
     answerbloats
