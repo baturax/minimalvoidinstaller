@@ -184,6 +184,8 @@ installsystem() {
     echo "installing system"
     $installcommand "xbps-install -Su xbps"
     $installcommand "xbps-install -u"
+    touch /mnt/usr/share/xbps.d/bloats.conf
+    echo "ignorepkg=linux-firmware-broadcom"
     $installcommand "xbps-install $needed"
     $installcommand "xbps-remove $bloat"
     echo "finished"
