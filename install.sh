@@ -26,7 +26,7 @@ needed="opendoas libusb usbutils dbus connman acpi acpid cpio libaio device-mapp
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
 
-neededbloat="opendoas git make gcc curl wget nvidia  alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire  neovim qt5ct qt6ct xorg-minimal leftwm chrony xset xclip xsel xclipboard setxkbmap"
+neededbloat="opendoas git curl wget nvidia  alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire neovim qt5ct qt6ct chrony "
 
 askbloats="Wanna install needed bloats? (press y)"
 
