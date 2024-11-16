@@ -215,7 +215,7 @@ setupusers() {
 
 
 installgrub() {
-    echo "installing refind cause i love it"
+    echo "uninstall grub and install refind after opening system"
     $installcommand "xbps-install grub-x86_64-efi"
     $installcommand "grub-install"
     echo "finished"
