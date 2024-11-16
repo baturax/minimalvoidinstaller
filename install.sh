@@ -262,6 +262,7 @@ answerbloats() {
         echo 'permit persist :wheel' >> /mnt/etc/doas.conf
         $installcommand "xbps-install -S $neededbloat"
         $installcommand "ln -s /etc/sv/connmand /etc/runit/runsvdir/default/"
+        $installcommand "ln -s /etc/sv/dbus /etc/runit/runsvdir/default/"
         $installcommand "rm -rf /etc/runit/runsvdir/default/agetty-tty4 /etc/runit/runsvdir/default/agetty-tty5 /etc/runit/runsvdir/default/agetty-tty6"
         $installcommand "ln -s /etc/sv/chronyd /etc/runit/runsvdir/default"
     fi
