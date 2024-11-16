@@ -21,7 +21,7 @@ read output
 
 bloat="sudo xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
 
-needed="opendoas libusb usbutils dbus connman acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware git"
+needed="opendoas libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware git"
 
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
