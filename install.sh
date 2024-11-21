@@ -182,12 +182,12 @@ setuprepo() {
 
 installsystem() {
     echo "installing system"
-    $installcommand "xbps-install -Su xbps"
-    $installcommand "xbps-install -u"
+    $installcommand "xbps-install -Suy xbps"
+    $installcommand "xbps-install -uy"
     touch /mnt/usr/share/xbps.d/bloats.conf
     echo "ignorepkg=linux-firmware-broadcom" >> /mnt/usr/share/xbps.d/bloats.conf
-    $installcommand "xbps-install $needed" 
-    $installcommand "xbps-remove $bloat"
+    $installcommand "xbps-install -y $needed" 
+    $installcommand "xbps-remove -y $bloat"
     echo "finished"
 }
 
@@ -216,7 +216,7 @@ setupusers() {
 
 installgrub() {
     echo "uninstall grub and install refind after opening system"
-    $installcommand "xbps-install grub-x86_64-efi"
+    $installcommand "xbps-install -y grub-x86_64-efi"
     $installcommand "grub-install"
     echo "finished"
 }
@@ -260,7 +260,7 @@ answerbloats() {
     if [ "$answeredbloats" == "y" ]; then
         touch /mnt/etc/doas.conf
         echo 'permit persist :wheel' >> /mnt/etc/doas.conf
-        $installcommand "xbps-install -S $neededbloat"
+        $installcommand "xbps-install -Sy $neededbloat"
         $installcommand "ln -s /etc/sv/connmand /etc/runit/runsvdir/default/"
         $installcommand "ln -s /etc/sv/dbus /etc/runit/runsvdir/default/"
         $installcommand "rm -rf /etc/runit/runsvdir/default/agetty-tty4 /etc/runit/runsvdir/default/agetty-tty5 /etc/runit/runsvdir/default/agetty-tty6"
