@@ -21,12 +21,12 @@ read output
 
 bloat="sudo xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
 
-needed="opendoas libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware git"
+needed="opendoas neovim libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware git"
 
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
 
-neededbloat="opendoas xdg-utils git curl wget nvidia  alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire neovim qt5ct qt6ct chrony "
+neededbloat="opendoas xdg-utils git curl wget nvidia  alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire  chrony "
 
 askbloats="Wanna install needed bloats? (press y)"
 
@@ -194,9 +194,9 @@ installsystem() {
 prepare() {
     echo "preparing system, better get ready!!"
     $installcommand "mount -t efivarfs none /sys/firmware/efi/efivars"
-    vi /mnt/etc/hostname
-    vi /mnt/etc/rc.conf
-    vi /mnt/etc/default/libc-locales
+    nvim /mnt/etc/hostname
+    nvim /mnt/etc/rc.conf
+    nvim /mnt/etc/default/libc-locales
     $installcommand "xbps-reconfigure -f glibc-locales"
     echo "finished"
 }
