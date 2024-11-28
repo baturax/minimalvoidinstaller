@@ -1,18 +1,6 @@
 #!/usr/bin/bash
 
-check_package() {
-    package=$1
-    if ! which $package &>/dev/null; then
-        echo "make sure xz vi and wget installed"
-    else
-        echo "nothing looks sus, installing started"
-    fi
-}
-
-# Paketlerin her birini kontrol et
-check_package "xz"
-check_package "wget"
-check_package "vi"
+echo "make sure xz vim and wget is installed"
 
 echo "sda or nvme?"
 echo "create 3 partitions: first one is efi, second is swap, third is root"
@@ -177,6 +165,7 @@ setuprepo() {
     echo 'repository=https://repo-default.voidlinux.org/current' >> /mnt/usr/share/xbps.d/00-repository-main.conf
     echo 'repository=https://repo-default.voidlinux.org/current/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
     echo 'repository=https://repo-default.voidlinux.org/current/multilib' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo 'repository=https://repo-default.voidlinux.org/current/multilib/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
     echo "finished"
 }
 
@@ -194,9 +183,9 @@ installsystem() {
 prepare() {
     echo "preparing system, better get ready!!"
     $installcommand "mount -t efivarfs none /sys/firmware/efi/efivars"
-    nvim /mnt/etc/hostname
-    nvim /mnt/etc/rc.conf
-    nvim /mnt/etc/default/libc-locales
+    vim /mnt/etc/hostname
+    vim /mnt/etc/rc.conf
+    vim /mnt/etc/default/libc-locales
     $installcommand "xbps-reconfigure -f glibc-locales"
     echo "finished"
 }
