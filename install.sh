@@ -9,12 +9,12 @@ read output
 
 bloat="sudo xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
 
-needed="opendoas neovim libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux6.11 linux6.11-headers sof-firmware git"
+needed="opendoas neovim libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux6.12 linux6.12-headers sof-firmware git"
 
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
 
-neededbloat="opendoas xdg-utils git curl wget nvidia  alsa-lib alsa-firmware alsa-tools playerctl alsa-pipewire  chrony "
+neededbloat="opendoas xdg-utils git curl wget nvidia  alsa-lib alsa-firmware alsa-tools alsa-utils playerctl chrony "
 
 askbloats="Wanna install needed bloats? (press y)"
 
@@ -254,6 +254,7 @@ answerbloats() {
         $installcommand "ln -s /etc/sv/dbus /etc/runit/runsvdir/default/"
         $installcommand "rm -rf /etc/runit/runsvdir/default/agetty-tty4 /etc/runit/runsvdir/default/agetty-tty5 /etc/runit/runsvdir/default/agetty-tty6"
         $installcommand "ln -s /etc/sv/chronyd /etc/runit/runsvdir/default"
+        $installcommand "ln -s /etc/sv/alsa/ /etc/runit/runsvdir/default/"
     fi
 }
 
