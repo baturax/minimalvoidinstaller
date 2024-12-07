@@ -7,14 +7,14 @@ echo "create 3 partitions: first one is efi, second is swap, third is root"
 echo "dont forget to select correct type. for first one, select fat32. for second, select swap. for third, select linux filesystem"
 read output
 
-bloat="sudo xfsprogs btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
+bloat="sudo btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
 
-needed="opendoas neovim libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux-firmware-intel linux-firmware-nvidia linux6.12 linux6.12-headers sof-firmware git mesa-dri vulkan-loader mesa-vulkan-intel intel-video-accel"
+needed="neovim libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux-firmware-intel linux-firmware-nvidia linux6.12 linux6.12-headers sof-firmware git mesa-dri vulkan-loader mesa-vulkan-intel intel-video-accel"
 
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
 
-neededbloat="opendoas xdg-utils git curl wget nvidia  alsa-lib alsa-firmware playerctl chrony "
+neededbloat="opendoas xdg-utils git curl wget nvidia  alsa-lib alsa-firmware playerctl chrony pulseaudio"
 
 askbloats="Wanna install needed bloats? (press y)"
 
@@ -34,10 +34,13 @@ fornvme() {
     echo "formatting disk"
     mkfs.vfat -F32 ${device}p1
     mkswap ${device}p2
-    mkfs.ext4 ${device}p3
+    mkfs.xfs ${device}p3
+    mkfs.ext4 ${device}p4
 
     ## mount disk
     echo "mounting disk"
+    mount ${device}p4 /mnt
+    mkdir -p /mnt/home
     mount ${device}p3 /mnt
     mkdir -p /mnt/boot/efi
     mount ${device}p1 /mnt/boot/efi
@@ -78,68 +81,6 @@ fornvme() {
 
 }
 
-forsda() {
-    ## get disk name    #working
-    echo "dont mind these outputs"
-    device="/dev/sda"
-    umount -R /mnt/
-    umount $device*
-    swapoff $device*
-    rm -rf /mnt/*
-    cfdisk $device
-    echo "finished"
-
-    ## format disk      #working
-    echo "formatting disk"
-    mkfs.vfat -F32 ${device}1
-    mkswap ${device}2
-    mkfs.ext4 ${device}3
-    echo "finished"
-
-    ## mount disk       #working
-    echo "mounting disk"
-    mount ${device}3 /mnt
-    mkdir -p /mnt/boot/efi
-    mount ${device}1 /mnt/boot/efi
-    swapon ${device}2
-    echo "finished"
-
-    ## download tarball     #working
-    downloadtarball
-
-    ## mount to chroot     #working
-    mountfilesandchroot
-
-    ##setup repo            #working
-    setuprepo
-
-    ## install system       #working
-    installsystem
-
-    ## prepare system       #working
-    prepare
-
-    #setup users        #working
-    setupusers
-
-    ## fstab           #working
-    bastardfstabsda
-
-    ##install grub
-    installgrub
-
-    ## last touch
-    lasttouch
-
-    ##ask bloats
-    answerbloats
-
-    ## ask last words
-    answerlastwords
-}
-
-
-
 downloadtarball() {
     echo "downloading tarball"
     wget -O /tmp/void.tar.xz https://repo-fastly.voidlinux.org/live/current/void-x86_64-ROOTFS-20240314.tar.xz
@@ -162,10 +103,10 @@ setuprepo() {
     rm /mnt/usr/share/xbps.d/00-repository-main.conf
     touch /mnt/usr/share/xbps.d/00-repository-main.conf
     # Append new repository URLs using echo
-    echo 'repository=https://repo-default.voidlinux.org/current' >> /mnt/usr/share/xbps.d/00-repository-main.conf
-    echo 'repository=https://repo-default.voidlinux.org/current/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
-    echo 'repository=https://repo-default.voidlinux.org/current/multilib' >> /mnt/usr/share/xbps.d/00-repository-main.conf
-    echo 'repository=https://repo-default.voidlinux.org/current/multilib/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo 'repository=https://repo-fastly.voidlinux.org/current' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    echo 'repository=https://repo-fastly.voidlinux.org/current/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    #echo 'repository=https://repo-fastly.voidlinux.org/current/multilib' >> /mnt/usr/share/xbps.d/00-repository-main.conf
+    #echo 'repository=https://repo-fastly.voidlinux.org/current/multilib/nonfree' >> /mnt/usr/share/xbps.d/00-repository-main.conf
     echo "finished"
 }
 
@@ -196,7 +137,7 @@ setupusers() {
     $installcommand "passwd root"
     echo "enter username"
     read username
-    $installcommand "useradd -m -G wheel,video,audio $username"
+    $installcommand "useradd -m -G plugdev,video,audio -d /home/void $username"
     echo "enter password for $username"
     $installcommand "passwd $username"
     echo "finished"
@@ -218,26 +159,14 @@ lasttouch() {
 
 bastardfstabnvme() {
     $installcommand "rm /etc/fstab"
-    root_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p3| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
-efi_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p1| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
-swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p2| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+    root_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p4| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+    home_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p3| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+    efi_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p1| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
+    swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/nvme0n1p2| awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
 
     $installcommand "touch $FSTAB_FILE"
     $installcommand "echo \"$root_UUID / ext4 defaults 0 1\" | tee -a $FSTAB_FILE"
-    $installcommand "echo \"$efi_UUID /boot/efi vfat defaults 0 2\" | tee -a $FSTAB_FILE"
-    $installcommand "echo \"$swap_UUID swap swap defaults 0 0\" | tee -a $FSTAB_FILE"
-    $installcommand "echo \"tmpfs /tmp tmpfs defaults 0 0\" | tee -a $FSTAB_FILE"
-}
-
-
-bastardfstabsda() {
-    $installcommand "rm /etc/fstab"
-    root_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda3 | awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
-efi_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda1 | awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
-swap_UUID=$(chroot /mnt /bin/sh -c "blkid /dev/sda2 | awk -F 'UUID=\"' '{print \$2}' | awk -F '\"' '{print \"UUID=\" \$1}'")
-
-    $installcommand "touch $FSTAB_FILE"
-    $installcommand "echo \"$root_UUID / ext4 defaults 0 1\" | tee -a $FSTAB_FILE"
+    $installcommand "echo \"$home_UUID / xfs defaults 0 1\" | tee -a $FSTAB_FILE"
     $installcommand "echo \"$efi_UUID /boot/efi vfat defaults 0 2\" | tee -a $FSTAB_FILE"
     $installcommand "echo \"$swap_UUID swap swap defaults 0 0\" | tee -a $FSTAB_FILE"
     $installcommand "echo \"tmpfs /tmp tmpfs defaults 0 0\" | tee -a $FSTAB_FILE"
@@ -247,14 +176,13 @@ answerbloats() {
     echo $askbloats
     read answeredbloats
     if [ "$answeredbloats" == "y" ]; then
-        touch /mnt/etc/doas.conf
-        echo 'permit persist :wheel' >> /mnt/etc/doas.conf
+        #touch /mnt/etc/doas.conf
+        #echo 'permit persist :wheel' >> /mnt/etc/doas.conf
         $installcommand "xbps-install -Sy $neededbloat"
         $installcommand "ln -s /etc/sv/connmand /etc/runit/runsvdir/default/"
         $installcommand "ln -s /etc/sv/dbus /etc/runit/runsvdir/default/"
         $installcommand "rm -rf /etc/runit/runsvdir/default/agetty-tty4 /etc/runit/runsvdir/default/agetty-tty5 /etc/runit/runsvdir/default/agetty-tty6"
         $installcommand "ln -s /etc/sv/chronyd /etc/runit/runsvdir/default"
-        $installcommand "ln -s /etc/sv/alsa/ /etc/runit/runsvdir/default/"
     fi
 }
 
