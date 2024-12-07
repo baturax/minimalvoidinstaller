@@ -9,7 +9,7 @@ read output
 
 bloat="sudo btrfs-progs ipw2100-firmware ipw2200-firmware zd1211-firmware linux-firmware-amd linux-firmware-broadcom base-container-full"
 
-needed="neovim libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux-firmware-intel linux-firmware-nvidia linux6.12 linux6.12-headers sof-firmware git mesa-dri vulkan-loader mesa-vulkan-intel intel-video-accel"
+needed="neovim libusb usbutils dbus connman bash-completion acpi acpid cpio libaio device-mapper sof-firmware kpartx dracut linux-firmware-network linux-firmware-intel linux-firmware-nvidia linux6.11 linux6.11-headers sof-firmware git mesa-dri vulkan-loader mesa-vulkan-intel intel-video-accel"
 
 installcommand="chroot /mnt /bin/sh -c"
 FSTAB_FILE="/etc/fstab"
